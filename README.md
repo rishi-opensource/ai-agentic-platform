@@ -9,4 +9,3 @@ A stateful, autonomous research agent powered by **Groq** and **LangGraph**.
 - **Stack**: Python, LangChain, Groq, Tavily, Streamlit.
 
 ---
-*Created by [Rishi](https://github.com/rishi-opensource)*

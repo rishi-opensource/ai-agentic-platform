@@ -58,4 +58,4 @@ uv run experiments/graph_research.py
 - `experiments/`: Step-by-step learning scripts and test harnesses.
 
 ---
-Built with ❤️ using LangChain, LangGraph, and Groq.
+Built using LangChain, LangGraph, and Groq.
