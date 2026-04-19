@@ -16,23 +16,39 @@ def main():
     
     inputs = {"messages": [HumanMessage(content=query)]}
     
+    # 2. Config with Thread ID (Mandatory for Checkpointers)
+    config = {"configurable": {"thread_id": "test_thread_123"}}
+    
     # We'll keep track of the last node to print labels
     final_message = None
-    for chunk in research_graph.stream(inputs, stream_mode="updates"):
+    
+    # Stream the graph with the config
+    for chunk in research_graph.stream(inputs, config=config, stream_mode="updates"):
         for node_name, output in chunk.items():
             print(f"\n📍 [Node: {node_name}]")
-            final_message = output["messages"][-1]
             
-            # INSPECT: What did we actually get?
-            print(f"  Type: {type(final_message).__name__}")
-            print(f"  Content length: {len(final_message.content) if hasattr(final_message, 'content') and final_message.content else 0}")
-            
-            if hasattr(final_message, "tool_calls") and final_message.tool_calls:
-                print(f"  AI wants to use tools: {[tc['name'] for tc in final_message.tool_calls]}")
-            elif final_message.type == "tool":
-                print(f"  Tool returned data successfully.")
+            if isinstance(output, dict) and "messages" in output:
+                final_message = output["messages"][-1]
+                # INSPECT: What did we actually get?
+                if hasattr(final_message, "tool_calls") and final_message.tool_calls:
+                    print(f"  AI wants to use tools: {[tc['name'] for tc in final_message.tool_calls]}")
+                elif final_message.type == "tool":
+                    print(f"  Tool returned data successfully.")
+                else:
+                    print(f"  Content Preview: {final_message.content[:200]}...")
             else:
-                print(f"  Content Preview: {final_message.content[:200]}...")
+                print(f"  Action required or internal state change.")
+
+    # 3. Handle Interrupts (HITL)
+    snapshot = research_graph.get_state(config)
+    if snapshot.next:
+        print(f"\n🚦 BREAKPOINT: The graph is paused before: {snapshot.next}")
+        print("Continuing to final summary (Auto-Approving for this test)...")
+        # To resume, we stream with None as input
+        for chunk in research_graph.stream(None, config=config, stream_mode="updates"):
+            for node_name, output in chunk.items():
+                print(f"📍 [Node: {node_name}] (Resumed)")
+                final_message = output["messages"][-1]
 
     print("\n--- FINAL RESEARCH REPORT ---")
     if final_message and getattr(final_message, "content", None):
