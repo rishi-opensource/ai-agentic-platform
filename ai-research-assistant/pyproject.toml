@@ -1,0 +1,17 @@
+[project]
+name = "ai-research-assistant"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "chromadb>=1.5.8",
+    "langchain>=1.2.15",
+    "langchain-community>=0.4.1",
+    "langchain-google-genai>=4.2.2",
+    "langgraph>=1.1.8",
+    "langsmith>=0.7.32",
+    "pydantic>=2.13.2",
+    "pytest>=9.0.3",
+    "python-dotenv>=1.2.2",
+]
