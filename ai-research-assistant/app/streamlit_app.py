@@ -32,65 +32,69 @@ st.markdown("---")
 # --- SESSION STATE ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = "default_user_1"
 
 # --- CHAT INTERFACE ---
-
-# Display chat history with nice styling
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Input for new message
-if prompt := st.chat_input("What would you like me to research?"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+# Check if we have a pending interrupt
+config = {"configurable": {"thread_id": st.session_state.thread_id}}
+state_snapshot = research_graph.get_state(config)
 
-    # 2. Run the Graph
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        
-        # We stream the results to show progress
-        final_response = ""
-        nodes_visited = []
-        
-        # Using status for the internal thinking steps
-        with st.status("🧠 Agent Orchestration...", expanded=True) as status:
-            # LangSmith Configuration & Metadata
-            config = {
-                "metadata": {
-                    "model": model_choice,
-                    "interface": "streamlit",
-                    "thread_id": "st_session"
-                },
-                "tags": ["research_assistant", "v1_demo"]
-            }
+# 1. Handle Pending Approval
+if state_snapshot.next:
+    st.warning("🚦 **Breakpoint Reached**: Research is complete, but needs your approval to generate the final report.")
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        if st.button("✅ Approve", use_container_width=True):
+            with st.chat_message("assistant"):
+                with st.status("✍️ Synthesizing Final Report...", expanded=True):
+                    # Resume execution
+                    for chunk in research_graph.stream(None, config=config, stream_mode="updates"):
+                        pass # Processing is done in the nodes
+                    
+                    # Fetch final message
+                    final_state = research_graph.get_state(config)
+                    final_report = final_state.values["messages"][-1].content
+                    st.session_state.messages.append({"role": "assistant", "content": final_report})
+                    st.markdown(final_report)
+                    st.rerun()
+    with col2:
+        st.info("The agent has gathered all data and is waiting for your signal.")
 
-            for chunk in research_graph.stream(
-                {"messages": [HumanMessage(content=prompt)]}, 
-                config=config,
-                stream_mode="updates"
-            ):
-                for node_name, output in chunk.items():
-                    nodes_visited.append(node_name)
-                    status.write(f"✅ Executing Node: **{node_name}**")
-                    
-                    last_msg = output["messages"][-1]
-                    
-                    if hasattr(last_msg, "tool_calls") and last_msg.tool_calls:
-                        status.write(f"🛠️ Tool Requested: {[tc['name'] for tc in last_msg.tool_calls]}")
-                    elif last_msg.type == "tool":
-                        status.write("📊 Data retrieved.")
-                    else:
-                        final_response = last_msg.content
+# 2. Input for new message (Only if not waiting for approval)
+else:
+    if prompt := st.chat_input("What would you like me to research?"):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        with st.chat_message("assistant"):
+            output_container = st.empty()
             
-            status.update(label=f"Analysis Complete ({len(nodes_visited)} steps)", state="complete", expanded=False)
-        
-        # Display the final summary
-        message_placeholder.markdown(final_response)
-        st.session_state.messages.append({"role": "assistant", "content": final_response})
-        
-        # Show debug info in an expander
-        with st.expander("🔍 View Technical Trace"):
-            st.write(f"**Flow Path:** {' ➡️ '.join(nodes_visited)}")
-            st.json(st.session_state.messages[-1])
+            with st.status("🧠 Agent Orchestration...", expanded=True) as status:
+                run_config = {
+                    "configurable": {"thread_id": st.session_state.thread_id},
+                    "metadata": {"model": model_choice, "interface": "streamlit"},
+                }
+
+                for chunk in research_graph.stream(
+                    {"messages": [HumanMessage(content=prompt)]}, 
+                    config=run_config,
+                    stream_mode="updates"
+                ):
+                    for node_name, output in chunk.items():
+                        status.write(f"✅ Executing Node: **{node_name}**")
+            
+            # Check if we hit an interrupt inside the loop
+            final_snapshot = research_graph.get_state(run_config)
+            if final_snapshot.next:
+                st.warning("📊 Research loop finished. **Waiting for Approval...**")
+                st.rerun() # Trigger a rerun to show the Approval UI we defined above
+            else:
+                final_response = final_snapshot.values["messages"][-1].content
+                output_container.markdown(final_response)
+                st.session_state.messages.append({"role": "assistant", "content": final_response})

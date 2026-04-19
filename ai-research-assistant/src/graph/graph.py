@@ -45,6 +45,14 @@ workflow.add_edge("tools", "researcher")
 # After summarizer runs, we are DONE
 workflow.add_edge("summarizer", END)
 
-# 5. Compile the Graph
-# This turns the blueprint into an executable "app"
-research_graph = workflow.compile()
+from langgraph.checkpoint.memory import MemorySaver
+
+# 5. Compile the Graph with Persistence and Breakpoints
+# We use MemorySaver to allow the graph to "pause" and remember its state
+memory = MemorySaver()
+
+# interrupt_before=["summarizer"] creates a Human-in-the-loop breakpoint
+research_graph = workflow.compile(
+    checkpointer=memory,
+    interrupt_before=["summarizer"]
+)
