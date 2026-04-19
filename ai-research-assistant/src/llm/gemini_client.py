@@ -4,7 +4,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 load_dotenv()
 
-def get_gemini_client(model: str = "gemini-1.5-flash", temperature: float = 0.0):
+def get_gemini_client(model: str = "gemini-3-flash-preview", temperature: float = 0.0):
     """
     Returns an initialized Gemini LLM client.
     """

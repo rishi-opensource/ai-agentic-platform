@@ -9,10 +9,10 @@ load_dotenv()
 
 def main():
     # 2. Initialize the Model
-    # We use 'gemini-1.5-flash' for speed and cost-efficiency.
-    # We set temperature=0.0 to keep responses focused and deterministic.
+    # We try 'gemini-3-flash-preview' as found in the available models list.
+    # We set temperature=0.0 for deterministic results.
     llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
+        model="gemini-3-flash-preview",
         temperature=0.0,
     )
 
