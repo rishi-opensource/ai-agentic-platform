@@ -1,3 +1,4 @@
+import os
 from src.graph.state import AgentState
 from langchain_tavily import TavilySearch
 from langchain_core.tools import tool
@@ -17,16 +18,31 @@ def multiply(a: float, b: float) -> float:
 search_tool = TavilySearch(k=2)
 
 # 2. RAG Retriever Tool
-# Load the persistent vectorstore we created in Phase 3
-vectorstore = load_vectorstore()
-retriever = vectorstore.as_retriever()
-retriever_tool = create_retriever_tool(
-    retriever,
-    "local_knowledge_base",
-    "Use this tool to search for private files, internal projects (like Project Antigravity), or confidential documents."
-)
+# Robust Initialization: Check if DB exists, otherwise build from data/
+PERSIST_DIR = "chroma_db"
+if not os.path.exists(PERSIST_DIR):
+    from src.rag.vectorstore import initialize_vectorstore
+    print("📦 Knowledge base missing. Initializing from data/ directory...")
+    vectorstore = initialize_vectorstore(data_dir="data", persist_directory=PERSIST_DIR)
+else:
+    vectorstore = load_vectorstore(PERSIST_DIR)
 
-tools = [search_tool, multiply, retriever_tool]
+# Fallback: If still no vectorstore (empty data dir), create a dummy retriever
+if vectorstore:
+    retriever = vectorstore.as_retriever()
+else:
+    # Just a mock or skip if no data
+    retriever = None
+
+if retriever:
+    retriever_tool = create_retriever_tool(
+        retriever,
+        "local_knowledge_base",
+        "Use this tool to search for private files, internal projects, or confidential documents."
+    )
+    tools = [search_tool, multiply, retriever_tool]
+else:
+    tools = [search_tool, multiply]
 
 # 3. Setup the LLM and bind the tools
 llm = get_groq_client()
