@@ -40,9 +40,24 @@ def summarize_node(state: AgentState):
     """
     messages = state["messages"]
     
-    # A prompt specifically for the final summary
-    summarize_prompt = SystemMessage(content="Write a concise 3-paragraph research report based on the findings in the conversation. Use a professional tone.")
+    # Format the conversation history into a single string for clarity
+    context = ""
+    for msg in messages:
+        role = "User" if msg.type == "human" else "Assistant"
+        if msg.type == "tool":
+            role = "Tool Result"
+        context += f"\n--- {role} ---\n{msg.content}\n"
+
+    # A robust prompt for the final report
+    summarize_prompt = (
+        "You are an expert Research Analyst. \n"
+        "Here is the research history: \n"
+        f"{context} \n\n"
+        "TASK: Write a detailed, 3-paragraph research report that answers the initial query. \n"
+        "Ensure you include the results of any calculations and searches. \n"
+        "Use professional markdown formatting. Return ONLY the report."
+    )
     
-    response = llm.invoke([summarize_prompt] + messages)
+    response = llm.invoke(summarize_prompt)
     
     return {"messages": [response], "is_complete": True}
