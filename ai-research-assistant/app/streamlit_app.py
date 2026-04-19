@@ -47,23 +47,40 @@ state_snapshot = research_graph.get_state(config)
 # 1. Handle Pending Approval
 if state_snapshot.next:
     st.warning("🚦 **Breakpoint Reached**: Research is complete, but needs your approval to generate the final report.")
-    col1, col2 = st.columns([1, 4])
+    
+    # HITL Buttons
+    col1, col2, col3 = st.columns([1, 1, 3])
+    
     with col1:
         if st.button("✅ Approve", use_container_width=True):
             with st.chat_message("assistant"):
                 with st.status("✍️ Synthesizing Final Report...", expanded=True):
-                    # Resume execution
                     for chunk in research_graph.stream(None, config=config, stream_mode="updates"):
-                        pass # Processing is done in the nodes
-                    
-                    # Fetch final message
+                        pass
                     final_state = research_graph.get_state(config)
                     final_report = final_state.values["messages"][-1].content
                     st.session_state.messages.append({"role": "assistant", "content": final_report})
                     st.markdown(final_report)
                     st.rerun()
+
     with col2:
-        st.info("The agent has gathered all data and is waiting for your signal.")
+        if st.button("❌ Reject", use_container_width=True):
+            st.session_state.show_feedback = True
+
+    # Feedback Loop UI
+    if st.session_state.get("show_feedback"):
+        feedback = st.text_input("💡 What should the agent improve?", placeholder="e.g. Focus more on the security protocol...")
+        if st.button("📤 Send Feedback & Refine"):
+            # 🔄 THE BACKTRACK TRICK
+            feedback_msg = HumanMessage(content=f"Human Feedback: {feedback}")
+            research_graph.update_state(config, {"messages": [feedback_msg]}, as_node="tools")
+            
+            st.session_state.show_feedback = False
+            # Trigger a rerun so the 'else' block (the execution loop) starts again
+            st.rerun()
+            
+    with col3:
+        st.info("Approve to finish, or Reject to provide feedback and refine the research.")
 
 # 2. Input for new message (Only if not waiting for approval)
 else:

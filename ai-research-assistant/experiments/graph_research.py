@@ -53,8 +53,37 @@ def main():
                     print(f"📍 [Node: {node_name}] (Resumed)")
                     final_message = output["messages"][-1]
         else:
-            print("🛑 Approval denied. Research session paused.")
-            return
+            feedback = input("💡 What should the agent improve? (Feedback): ").strip()
+            print(f"🔄 Injecting feedback and backtracking to Researcher...")
+            
+            # THE TRICK: Update state and pretend we just finished 'tools' to loop back to 'researcher'
+            feedback_msg = HumanMessage(content=f"USER FEEDBACK FOR REFINEMENT: {feedback}")
+            
+            # update_state with as_node="tools" tells the graph to go to researcher next
+            research_graph.update_state(
+                config, 
+                {"messages": [feedback_msg]}, 
+                as_node="tools"
+            )
+            
+            print("--- RESUMING REFINEMENT LOOP ---")
+            # Clear inputs for the loop (or just call main again? No, recursion is bad here)
+            # We'll just loop the stream again.
+            for chunk in research_graph.stream(None, config=config, stream_mode="updates"):
+                for node_name, output in chunk.items():
+                    print(f"📍 [Node: {node_name}] (Refining...)")
+                    if isinstance(output, dict) and "messages" in output:
+                        final_message = output["messages"][-1]
+                        if not hasattr(final_message, "tool_calls"):
+                             print(f"  Content Preview: {final_message.content[:200]}...")
+
+            # Recursive-ish check: Should we ask again? 
+            # For simplicity in this script, we'll just do one refinement and finish.
+            # (In a real app, you'd wrap this in a while loop)
+            print("\n✅ Refinement step complete. Re-generating final report...")
+            for chunk in research_graph.stream(None, config=config, stream_mode="updates"):
+                 for node_name, output in chunk.items():
+                    final_message = output["messages"][-1]
 
     print("\n--- FINAL RESEARCH REPORT ---")
     if final_message and getattr(final_message, "content", None):
