@@ -56,8 +56,19 @@ if prompt := st.chat_input("What would you like me to research?"):
         
         # Using status for the internal thinking steps
         with st.status("🧠 Agent Orchestration...", expanded=True) as status:
+            # LangSmith Configuration & Metadata
+            config = {
+                "metadata": {
+                    "model": model_choice,
+                    "interface": "streamlit",
+                    "thread_id": "st_session"
+                },
+                "tags": ["research_assistant", "v1_demo"]
+            }
+
             for chunk in research_graph.stream(
                 {"messages": [HumanMessage(content=prompt)]}, 
+                config=config,
                 stream_mode="updates"
             ):
                 for node_name, output in chunk.items():
