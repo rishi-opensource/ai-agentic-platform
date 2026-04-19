@@ -4,10 +4,9 @@ from langchain_groq import ChatGroq
 
 load_dotenv()
 
-def get_groq_client(model_name: str = "llama-3.1-8b-instant", temperature: float = 0):
+def get_groq_client(model_name: str = "llama-3.3-70b-versatile", temperature: float = 0):
     """
     Creates and returns a ChatGroq client.
-    Using 8b model for better rate limits during development.
     """
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
