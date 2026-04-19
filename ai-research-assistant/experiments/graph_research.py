@@ -43,12 +43,18 @@ def main():
     snapshot = research_graph.get_state(config)
     if snapshot.next:
         print(f"\n🚦 BREAKPOINT: The graph is paused before: {snapshot.next}")
-        print("Continuing to final summary (Auto-Approving for this test)...")
-        # To resume, we stream with None as input
-        for chunk in research_graph.stream(None, config=config, stream_mode="updates"):
-            for node_name, output in chunk.items():
-                print(f"📍 [Node: {node_name}] (Resumed)")
-                final_message = output["messages"][-1]
+        user_approval = input("📝 Research is complete. Approve final report? (yes/no): ").strip().lower()
+        
+        if user_approval == "yes":
+            print("🚀 Approval received! Continuing to final summary...")
+            # To resume, we stream with None as input
+            for chunk in research_graph.stream(None, config=config, stream_mode="updates"):
+                for node_name, output in chunk.items():
+                    print(f"📍 [Node: {node_name}] (Resumed)")
+                    final_message = output["messages"][-1]
+        else:
+            print("🛑 Approval denied. Research session paused.")
+            return
 
     print("\n--- FINAL RESEARCH REPORT ---")
     if final_message and getattr(final_message, "content", None):
