@@ -1,0 +1,21 @@
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# uv
+# uv.lock SHOULD be committed, but the cache should not
+.uv/
+
+# OS 
+.DS_Store
