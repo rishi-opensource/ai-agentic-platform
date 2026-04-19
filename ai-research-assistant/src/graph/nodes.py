@@ -2,18 +2,31 @@ from src.graph.state import AgentState
 from langchain_tavily import TavilySearch
 from langchain_core.tools import tool
 from langchain_core.messages import SystemMessage
+from langchain_core.tools import create_retriever_tool
 from src.llm.groq_client import get_groq_client
+from src.rag.vectorstore import load_vectorstore
 
 # --- TOOL DEFINITIONS ---
 
+# 1. Math and Search Tools
 @tool
 def multiply(a: float, b: float) -> float:
     """Multiplies two numbers together. Use this for ANY math calculation."""
     return a * b
 
-# 2. Setup the Tools
 search_tool = TavilySearch(k=2)
-tools = [search_tool, multiply]
+
+# 2. RAG Retriever Tool
+# Load the persistent vectorstore we created in Phase 3
+vectorstore = load_vectorstore()
+retriever = vectorstore.as_retriever()
+retriever_tool = create_retriever_tool(
+    retriever,
+    "local_knowledge_base",
+    "Use this tool to search for private files, internal projects (like Project Antigravity), or confidential documents."
+)
+
+tools = [search_tool, multiply, retriever_tool]
 
 # 3. Setup the LLM and bind the tools
 llm = get_groq_client()
@@ -21,12 +34,18 @@ llm_with_tools = llm.bind_tools(tools)
 
 def research_node(state: AgentState):
     """
-    The Researcher: Decide if we need to search or if we have enough info.
+    The Researcher: Decide if we need to search web, check local docs, or if we have enough info.
     """
     messages = state["messages"]
     
-    # We add a small system instruction to keep the researcher focused
-    system_instruction = SystemMessage(content="You are a research assistant. If you need more information, use the search tool. If you have enough info, just say 'I have enough information to summarize.'")
+    # Updated system instruction to include the local knowledge base
+    system_instruction = SystemMessage(content=(
+        "You are an elite Research Assistant with access to both the Web and Private Documents. "
+        "1. Check the 'local_knowledge_base' first if the query seems internal or confidential. "
+        "2. Use 'tavily_search' for the latest public information. "
+        "3. Use 'multiply' for any math. "
+        "If you have enough info, just say 'I have enough information to summarize.'")
+    )
     
     # Call the LLM with the current message history
     response = llm_with_tools.invoke([system_instruction] + messages)

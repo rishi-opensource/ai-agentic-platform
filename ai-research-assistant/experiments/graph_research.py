@@ -10,7 +10,7 @@ from langchain_core.messages import HumanMessage
 def main():
     # 1. Prepare the input
     # We provide a complex query that requires search and synthesis
-    query = "What are the top 2 latest achievements of SpaceX and what is 15% of 5000?"
+    query = "Tell me about Project Antigravity and the reactor security protocol. Also multiply 12.5 by 8."
     print(f"--- Launching Research Graph ---")
     print(f"Query: {query}\n")
     
