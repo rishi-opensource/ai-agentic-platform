@@ -19,3 +19,6 @@ htmlcov/
 
 # OS 
 .DS_Store
+
+# Local DB
+chroma_db/

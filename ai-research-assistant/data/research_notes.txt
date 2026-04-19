@@ -1,0 +1,17 @@
+# Project Antigravity: Internal Research Notes
+Date: 2026-04-19
+Lead Scientist: Dr. Rishi
+
+## Core Technology: Temporal Flux Capacitors
+Our research has successfully stabilized the Temporal Flux Capacitor. 
+Unlike standard quantum bits, these capacitors use "time-dilated states" to store and process information. 
+
+## Key Advantage
+The main advantage is "Zero-Latency Interstellar Sync". 
+We have achieved a stable data transfer rate of 14 petabytes per second between Earth and Mars, bypassing the traditional speed-of-light delay by utilizing micro-wormholes.
+
+## Security Protocol: Indigo-9
+Any access to the central reactor requires a Level 5 biometric scan combined with a voice-key from Dr. Rishi himself.
+
+## Fictional Element: Antigravity Metal
+We discovered a new isotope of Iridium, named 'Rishium', which exhibits antigravity properties when cooled to -270 degrees Celsius.
