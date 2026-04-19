@@ -23,18 +23,22 @@ def main():
             print(f"\n📍 [Node: {node_name}]")
             final_message = output["messages"][-1]
             
+            # INSPECT: What did we actually get?
+            print(f"  Type: {type(final_message).__name__}")
+            print(f"  Content length: {len(final_message.content) if hasattr(final_message, 'content') and final_message.content else 0}")
+            
             if hasattr(final_message, "tool_calls") and final_message.tool_calls:
                 print(f"  AI wants to use tools: {[tc['name'] for tc in final_message.tool_calls]}")
             elif final_message.type == "tool":
                 print(f"  Tool returned data successfully.")
             else:
-                print(f"  Content: {final_message.content[:200]}...")
+                print(f"  Content Preview: {final_message.content[:200]}...")
 
     print("\n--- FINAL RESEARCH REPORT ---")
-    if final_message:
+    if final_message and getattr(final_message, "content", None):
         print(final_message.content)
     else:
-        print("No messages received.")
+        print(f"⚠️ Warning: Final message content was empty! Raw: {final_message}")
 
 
 if __name__ == "__main__":
