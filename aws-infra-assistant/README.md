@@ -4,17 +4,16 @@ A learning-focused project to build a multi-agent system for AWS infrastructure 
 
 ## 🧠 The Idea
 
-The goal is to create a set of specialized agents, each an expert in a specific AWS domain (EC2, RDS, Lambda). A **Central Supervisor** routes user queries to the correct agent, allowing for modular and extensible infrastructure management through natural language.
+The system is a **True Multi-Agent System** that uses a **Plan-and-Execute** pattern. It consists of specialized domain experts (EC2, RDS, Lambda) coordinated by a strategic Supervisor.
 
-## 🛠️ Current State: MVP
+## 🛠️ Current State: Evolved System
 
-This project is currently in the **Minimum Viable Product (MVP)** stage.
-- **Integration**: Uses the **AWS CLI** via Python's `subprocess` module.
-- **Orchestration**: Powered by **LangGraph** using the Supervisor/Router pattern.
-- **Memory**: Supports multi-turn conversations through session-based state persistence.
-
-> [!IMPORTANT]
-> This is a learning project designed for clarity and modularity. In the current MVP, AWS CLI credentials are read from `~/.aws/credentials`.
+The assistant has evolved beyond simple routing into a robust orchestration framework:
+- **Planning Supervisor**: Analyzes complex queries and generates execution plans involving multiple agents.
+- **Specialized Agents**: Each agent has its own **System Prompt** and domain-specific expertise.
+- **Reasoning Loops**: Agents receive tool outputs directly, reasoning over them to decide if further action is required.
+- **Execution Tracing**: Real-time visibility into the system's "thinking" process via a step-by-step trace in the CLI.
+- **Resilient Execution**: AWS CLI communication includes mandatory timeouts and automatic retries.
 
 ## 📂 Project Structure
 
