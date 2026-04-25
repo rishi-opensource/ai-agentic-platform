@@ -7,5 +7,7 @@ class AgentState(TypedDict):
     The state of the multi-agent system.
     """
     messages: Annotated[Sequence[BaseMessage], operator.add]
-    next: str  # To track which agent is next (useful for multi-agent phase)
-    # You can add more fields here like 'context', 'aws_profile', etc.
+    next: str  # The next node to execute
+    plan: List[str]  # The high-level plan (optional, for the supervisor)
+    steps: Annotated[List[str], operator.add]  # Execution trace
+    tool_results: Annotated[List[Dict], operator.add] # Results from tools

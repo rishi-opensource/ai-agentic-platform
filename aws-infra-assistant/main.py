@@ -23,9 +23,14 @@ def run_cli():
                 break
             
             # Run graph with config
-            # We pass the input as a HumanMessage. LangGraph will append it to history.
             input_state = {"messages": [HumanMessage(content=user_input)]}
             final_state = graph.invoke(input_state, config=config)
+            
+            # Display Trace (Thinking)
+            if final_state.get("steps"):
+                console.print("\n[bold yellow]🔍 Execution Trace:[/bold yellow]")
+                for step in final_state["steps"]:
+                    console.print(f"  → {step}")
             
             # Display last AI response
             last_msg = final_state["messages"][-1]
