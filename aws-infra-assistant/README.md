@@ -38,6 +38,7 @@ Move from a CLI to a modern Web UI for better visualization of resources and age
 
 ## ⚙️ Setup
 
-1. **Install Dependencies**: `pip install -r requirements.txt`
-2. **Set API Key**: `export OPENAI_API_KEY='your-key'`
-3. **Run**: `python main.py`
+1. **Create Virtual Environment**: `uv venv`
+2. **Install Dependencies**: `source .venv/bin/activate && uv pip install -r requirements.txt`
+3. **Set API Key**: `export OPENAI_API_KEY='your-key'`
+4. **Run**: `python main.py`
